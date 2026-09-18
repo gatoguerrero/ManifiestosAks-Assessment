@@ -1,0 +1,62 @@
+trigger: none
+
+parameters:
+- name: imageTag
+  displayName: 'Version de la imagen a desplegar'
+  type: string
+  default: '918'
+
+variables:
+- group: vg-aks-liq
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+stages:
+
+- stage: Deploy
+  displayName: 'Deploy to AKS'
+
+  jobs:
+  - job: DeployToAKS
+    displayName: 'Deploy Microservice'
+
+    steps:
+
+    - task: AzureCLI@2
+      displayName: 'Deploy to AKS'
+      inputs:
+        azureSubscription: $(serviceConnection)
+        scriptType: 'bash'
+        scriptLocation: 'inlineScript'
+        inlineScript: |
+
+          echo "Deploying version: ${{ parameters.imageTag }}"
+
+          az aks get-credentials \
+            --resource-group resourcegroup-assessment-devops-prod \
+            --name assessment-devops-dev \
+            --overwrite-existing
+
+          sed -i \
+            "s|image:.*|image: acrassessmentdevops.azurecr.io/devops-svc:${{ parameters.imageTag }}|" \
+            deployment.yml
+
+          echo "Applying Kubernetes manifests..."
+
+          kubectl apply -f namespace.yml
+          kubectl apply -f deployment.yml
+          kubectl apply -f service.yml
+          kubectl apply -f ingress.yml
+
+          echo "Waiting for deployment..."
+
+          kubectl rollout status deployment/devops-svc -n assessment
+
+          echo "Deployment completed successfully"
+
+          echo "Current pods:"
+          kubectl get pods -n assessment -o wide
+
+          echo "Current deployment:"
+          kubectl get deployment devops-svc -n assessment
