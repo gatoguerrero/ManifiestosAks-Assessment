@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: devops-svc
+  namespace: assessment
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: devops-svc
+  template:
+    metadata:
+      labels:
+        app: devops-svc
+    spec:
+      containers:
+        - name: devops-svc
+          image: acrassessmentdevops.azurecr.io/devops-svc:918
+          ports:
+            - containerPort: 8080
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "250m"
+              memory: "256Mi"
