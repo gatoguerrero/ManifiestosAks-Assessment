@@ -1,0 +1,26 @@
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+
+metadata:
+  name: devops-svc
+  namespace: assessment
+
+spec:
+  # Deployment que será escalado automáticamente
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: devops-svc
+
+  # Mínimo 2 Pods y máximo 4 Pods
+  minReplicas: 2
+  maxReplicas: 4
+
+  # Escalar según el consumo promedio de CPU
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
