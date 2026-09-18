@@ -48,10 +48,13 @@ stages:
           kubectl apply -f deployment.yml
           kubectl apply -f service.yml
           kubectl apply -f ingress.yml
+          kubectl apply -f hpa.yml
 
           echo "Waiting for deployment..."
 
-          kubectl rollout status deployment/devops-svc -n assessment
+          kubectl rollout status deployment/devops-svc \
+            -n assessment \
+            --timeout=180s
 
           echo "Deployment completed successfully"
 
@@ -60,3 +63,6 @@ stages:
 
           echo "Current deployment:"
           kubectl get deployment devops-svc -n assessment
+
+          echo "Current HPA:"
+          kubectl get hpa devops-svc -n assessment
